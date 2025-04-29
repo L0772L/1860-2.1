@@ -1,58 +1,61 @@
 // AbsoluteValue.asm
-@R0
-D=M      // D = x
+// Program: Compute z = |x|
+// Inputs: x is stored in R0
+// Outputs: z is stored in R1, flags R2 and R3 are set
+// Important: Do not modify R0
 
+// Assume no sign and no overflow first
 @R2
-M=0      // R2 = 0 (默认 x 是正数)
+M=0        // R2 = 0 (x assumed positive)
 @R3
-M=0      // R3 = 0 (默认无溢出)
+M=0        // R3 = 0 (no overflow)
 
-// 检查 x 是否为负数 (检查最高位是否为 1)
+// Load x to check sign
 @R0
-D=M      // D = x
+D=M        // D = x
 @NEGATIVE
-D;JLT    // 如果 x < 0，跳转到 NEGATIVE 处理
+D;JLT      // If x < 0, jump to NEGATIVE
 
-// x 是正数，直接存到 R1
+// x >= 0, copy x directly
 @R0
 D=M
 @R1
-M=D      // R1 = x
+M=D        // R1 = x
 @END
-0;JMP    // 结束
+0;JMP      // End program
 
 (NEGATIVE)
-// x 是负数，标记 R2 = 1
+// Set R2 = 1 to mark that x was negative
 @R2
 M=1
 
-// 检查 x 是否是 -32768 (1000000000000000)
+// Check if x is -32768 (special overflow case)
 @R0
 D=M
 @32768
-D=D+A    // D = x + 32768
+D=D+A      // D = x + 32768
 @OVERFLOW
-D;JEQ    // 如果 x == -32768，跳转到 OVERFLOW 处理
+D;JEQ      // If zero, x was -32768
 
-// 计算 |x| = -x = ~x + 1
+// Normal negative number, compute absolute value
 @R0
 D=M
-D=-D     // D = -x
+D=-D       // D = -x
 @R1
-M=D      // R1 = |x|
-
+M=D        // Store |x| in R1
 @END
-0;JMP    // 结束
+0;JMP
 
 (OVERFLOW)
-// 溢出情况: R3 = 1, R1 直接存原值
+// Overflow: set R3 = 1 and store original x into R1
 @R3
 M=1
 @R0
 D=M
 @R1
-M=D      // R1 = x (因为 -32768 不能转换为正数)
+M=D
 
 (END)
+// Infinite loop to end program
 @END
-0;JMP    // 无限循环
+0;JMP
